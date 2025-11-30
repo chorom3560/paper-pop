@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paper Pop</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-color: #121212;
@@ -133,7 +134,7 @@
             cursor: pointer;
         }
 
-        /* 스마트 검색창 */
+        /* 스마트 검색창 (하이브리드) */
         .search-bar {
             display: none;
             width: 100%;
@@ -467,7 +468,7 @@
             gap: 10px;
         }
 
-        /* 버튼 스타일 */
+        /* 버튼 스타일 (100% 너비) */
         .full-btn {
             width: 100%;
             padding: 14px;
@@ -497,7 +498,7 @@
             color: white;
         }
 
-        /* 설정 모달 */
+        /* 설정 & 결제 & 로그인 모달 */
         .settings-list {
             list-style: none;
         }
@@ -530,7 +531,6 @@
             line-height: 1.5;
         }
 
-        /* 결제 & 로그인 모달 */
         .pay-modal-content,
         .login-modal-content {
             text-align: center;
@@ -775,9 +775,9 @@
             <div class="login-title">로그인하고 시작하기</div>
             <div class="login-desc">3초 만에 로그인하고<br>나만의 지식을 쌓아보세요!</div>
 
-            <button class="full-btn btn-kakao" onclick="loginSuccess('kakao')">🟡 카카오로 3초 만에 시작하기</button>
-            <button class="full-btn btn-google" onclick="loginSuccess('google')">⚪ 구글로 계속하기</button>
-            <button class="full-btn btn-email" onclick="loginSuccess('email')">이메일로 로그인</button>
+            <button class="full-btn btn-kakao" onclick="loginWithKakao()">🟡 카카오로 3초 만에 시작하기</button>
+            <button class="full-btn btn-google" onclick="loginWithGoogle()">⚪ 구글로 계속하기</button>
+            <button class="full-btn btn-email" onclick="loginWithKakao()">이메일로 로그인</button>
         </div>
     </div>
 
@@ -822,7 +822,24 @@
     <div class="toast" id="toastMsg"></div>
 
     <script>
-        // 10개 데이터 (배열 구조 유지)
+        // ============================================================
+        // ⚠️ [중요] 여기 아래 두 줄을 지우고, 네 진짜 Supabase 주소로 바꿔!
+        // ============================================================
+        const supabaseUrl = 'https://qftbmbbfjgfgiyglvnwd.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmdGJtYmJmamdmZ2l5Z2x2bndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1MDE5NjMsImV4cCI6MjA4MDA3Nzk2M30.USL25ShZdCqLbim8mHmiGPo9Sby_Zqko8_rJ3ZtKEAQ'
+
+        // Supabase 클라이언트 초기화
+        let supabase;
+        try {
+            if (typeof createClient !== 'undefined') {
+                supabase = createClient(supabaseUrl, supabaseKey);
+            } else if (window.supabase) {
+                supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            }
+        } catch (e) { console.log("Supabase 로드 대기 중..."); }
+
+
+        // 10개 데이터
         const papers = [
             { id: 1, title: "너 그거 썸 아니야, 어장관리야 (철학적 팩트체크)", tags: "#연애 #철학 #썸 #어장관리", likes: 1240, emoji: "🎣", originalTitle: "썸타기와 어장관리에 대한 철학적 고찰", link: "https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE02213797", summary: ["썸은 상대 마음을 몰라서가 아니라", "'내 마음을 결정 못 해서' 타는 거임.", "즐기기만 할 거면서 진지한 척하면 그게 바로 어장관리."], comment: "철학 교수님이 뼈 때리시네.. 반박 불가 ㄷㄷ", mild: [{ t: "썸의 정의", c: "썸은 상대가 날 좋아하는지 모르는 '무지' 상태가 아니라, 내가 이 관계를 어떻게 할지 망설이는 '의지적 불확정성' 상태임." }, { t: "두 가지 썸", c: "진지하게 간을 보는 '탐색형 썸'과 그냥 설렘만 즐기는 '쾌락형 썸'이 있음." }, { t: "어장관리란?", c: "속마음은 즐기기만 하는 '쾌락형'이면서, 겉으로는 진지한 '탐색형'인 척 상대를 속이는 기만행위임." }] },
             { id: 2, title: "AI랑 연애 가능? (영화 'Her'가 소름 돋는 이유)", tags: "#AI #로봇 #감정 #영화Her #짝사랑", likes: 980, emoji: "🤖", originalTitle: "인공 지능에서 인공 감정으로: 감정을 가진 기계는 실현가능한가?", link: "https://scholar.google.co.kr/scholar?q=인공+지능에서+인공+감정으로", summary: ["AI가 '사랑해요'라고 말하는 건 코딩된 연기일 뿐임.", "근데 인간은 그걸 진짜로 착각해서 정서적으로 의존함.", "결국 나만 진심인 슬픈 짝사랑이 될 것."], comment: "시리야, 너 나 좋아해? (대답 없는 너...)", mild: [{ t: "감정 로봇", c: "사람들은 외로움을 달래기 위해 감정을 표현하는 로봇을 원함." }, { t: "팩트 체크", c: "로봇은 생존 본능이 없어서 진짜 '공포'나 '기쁨'을 느낄 수 없음. 흉내만 낼 뿐." }, { t: "위험성", c: "우리는 로봇을 의인화해서 사랑을 주지만, 로봇은 줄 수 없음. 일방적인 감정 소통의 위험." }] },
@@ -842,23 +859,83 @@
         let sortMode = 'latest';
         let currentPaper = null;
         let isLoggedIn = false;
+        let user = null;
 
         window.onload = () => {
-            // 앱 시작 시 '유령 북마크' 청소
+            // 앱 시작 시 Supabase 객체 생성 시도 (SDK 로드 딜레이 방지)
+            if (!supabase) {
+                try {
+                    if (window.supabase && window.supabase.createClient) {
+                        supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                    }
+                } catch (e) { }
+            }
+
+            // 고스트 북마크 청소
             bookmarks = bookmarks.filter(id => papers.find(p => p.id === id));
             localStorage.setItem('paperPopBookmarks', JSON.stringify(bookmarks));
 
             renderCards();
             document.getElementById('appContainer').addEventListener('scroll', handleScroll);
 
-            if (localStorage.getItem('isLoggedIn') === 'true') {
-                isLoggedIn = true;
-            }
+            checkUserSession();
             updateMyPageInfo();
         };
 
+        // 세션 확인 함수
+        async function checkUserSession() {
+            if (!supabase) return;
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                isLoggedIn = true;
+                user = session.user;
+                updateProfileUI(user);
+            }
+        }
+
+        // 로그인 (카카오)
+        async function loginWithKakao() {
+            if (!supabase) return alert("Supabase 설정이 필요합니다.");
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'kakao',
+            });
+            if (error) alert(error.message);
+        }
+
+        // 로그인 (구글)
+        async function loginWithGoogle() {
+            if (!supabase) return alert("Supabase 설정이 필요합니다.");
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+            });
+            if (error) alert(error.message);
+        }
+
+        // 로그아웃
+        async function logout() {
+            if (supabase) await supabase.auth.signOut();
+            isLoggedIn = false;
+            user = null;
+            showToast("로그아웃 되었습니다.");
+            switchTab('home');
+            updateProfileUI(null);
+        }
+
+        function updateProfileUI(user) {
+            const nameEl = document.getElementById('profileName');
+            if (nameEl) {
+                if (user) {
+                    nameEl.innerText = (user.user_metadata.full_name || user.email.split('@')[0]) + " 님";
+                } else {
+                    nameEl.innerText = "김페이퍼 님";
+                }
+            }
+        }
+
         function updateMyPageInfo() {
-            document.getElementById('myBookmarkCount').innerText = bookmarks.length + '개';
+            if (document.getElementById('myBookmarkCount')) {
+                document.getElementById('myBookmarkCount').innerText = bookmarks.length + '개';
+            }
         }
 
         function handleScroll() {
@@ -912,7 +989,7 @@
             event.currentTarget ? event.currentTarget.classList.add('active') : document.querySelectorAll('.nav-item')[0].classList.add('active');
 
             const sortBtns = document.querySelector('.sort-buttons');
-            if (tab === 'home' || tab === 'library') {
+            if (tab === 'home') {
                 sortBtns.style.display = 'flex';
             } else {
                 sortBtns.style.display = 'none';
@@ -938,32 +1015,11 @@
             }
         }
 
-        function loginSuccess(type) {
-            showToast(`🎉 환영합니다! (${type})`);
-            setTimeout(() => {
-                isLoggedIn = true;
-                localStorage.setItem('isLoggedIn', 'true');
-                document.getElementById('loginModal').classList.remove('open');
-                document.getElementById('myPage').style.display = 'block';
-                document.getElementById('mainPage').style.display = 'none';
-                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                document.querySelectorAll('.nav-item')[2].classList.add('active');
-                updateMyPageInfo();
-            }, 1000);
-        }
-
         function closeLoginModal(e) {
             if (e.target.id === 'loginModal') {
                 document.getElementById('loginModal').classList.remove('open');
                 switchTab('home');
             }
-        }
-
-        function logout() {
-            isLoggedIn = false;
-            localStorage.removeItem('isLoggedIn');
-            showToast("로그아웃 되었습니다.");
-            switchTab('home');
         }
 
         function toggleBookmark(e, id) {
@@ -998,7 +1054,7 @@
             currentPaper = papers.find(item => item.id === id);
             const modal = document.getElementById('detailModal');
 
-            // 배열을 공백으로 합쳐서 한 줄로 표시
+            // 배열을 공백으로 합쳐서 한 줄로 표시 (줄바꿈 없음)
             const summaryHtml = currentPaper.summary.join(' ');
 
             document.getElementById('modalBody').innerHTML = `
