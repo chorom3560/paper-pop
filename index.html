@@ -32,7 +32,7 @@
             overflow: hidden;
         }
 
-        /* 이모지 전용 폰트 설정 */
+        /* 이모지 전용 폰트 */
         .emoji-font {
             font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
         }
@@ -105,6 +105,7 @@
             top: 0;
             background-color: var(--bg-color);
             z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .logo {
@@ -131,38 +132,28 @@
             cursor: pointer;
         }
 
-        /* 스마트 검색창 (수정됨) */
+        /* 검색창 (수정됨: 기본은 밀어내기) */
         .search-bar {
             display: none;
             width: 100%;
-            padding: 10px 20px;
+            padding: 15px 20px;
             background-color: var(--bg-color);
-            /* 기본: static (문서 흐름에 포함되어 정렬 버튼을 밀어냄) */
-            position: static;
+            /* 중요: relative로 설정하여 정렬 버튼을 물리적으로 밀어냄 */
+            position: relative;
             z-index: 90;
+            border-bottom: 1px solid #333;
         }
 
-        /* 스크롤 내렸을 때 적용할 플로팅 스타일 */
-        .search-bar.floating {
+        /* 스크롤 내렸을 때만 둥둥 뜨게 변신 */
+        .search-bar.fixed-mode {
             position: fixed;
             top: 70px;
+            /* 헤더 높이 */
             left: 50%;
             transform: translateX(-50%);
             max-width: 400px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-            animation: slideDown 0.2s ease-out;
-        }
-
-        @keyframes slideDown {
-            from {
-                transform: translate(-50%, -10px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translate(-50%, 0);
-                opacity: 1;
-            }
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+            border-bottom: none;
         }
 
         .search-bar input {
@@ -186,7 +177,7 @@
         .sort-buttons {
             display: flex;
             gap: 10px;
-            padding: 10px 20px 15px;
+            padding: 15px 20px;
             overflow-x: auto;
             scrollbar-width: none;
         }
@@ -200,6 +191,9 @@
             cursor: pointer;
             white-space: nowrap;
             transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .sort-chip.active {
@@ -229,7 +223,6 @@
             transform: scale(0.98);
         }
 
-        /* 이모지 폰트 직접 적용 */
         .card-img-placeholder {
             width: 100%;
             height: 160px;
@@ -524,7 +517,7 @@
             line-height: 1.5;
         }
 
-        /* 결제 모달 (이모지 폰트 적용) */
+        /* 결제 모달 */
         .pay-modal-content {
             text-align: center;
             padding-top: 40px;
@@ -609,7 +602,7 @@
             opacity: 0;
             transition: 0.3s;
             pointer-events: none;
-            z-index: 200;
+            z-index: 9999;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             width: max-content;
         }
@@ -645,6 +638,7 @@
         </header>
         <div class="search-bar" id="searchBar"><input type="text" placeholder="관심 주제 검색 (예: 연애, 술)"
                 onkeyup="handleSearch(this.value)"></div>
+
         <div class="sort-buttons">
             <div class="sort-chip active" onclick="sortCards('latest', this)"><span class="emoji-font">🕒</span> 최신순
             </div>
@@ -719,7 +713,7 @@
     <div class="toast" id="toastMsg"></div>
 
     <script>
-        // 10개 데이터 복구
+        // 10개 데이터 (사용자 큐레이션)
         const papers = [
             { id: 1, title: "너 그거 썸 아니야, 어장관리야 (철학적 팩트체크)", tags: "#연애 #철학 #썸 #어장관리", likes: 1240, emoji: "🎣", originalTitle: "썸타기와 어장관리에 대한 철학적 고찰", link: "https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE02213797", summary: "썸은 상대 마음을 몰라서가 아니라\\n'내 마음을 결정 못 해서' 타는 거임.\\n즐기기만 할 거면서 진지한 척하면 그게 바로 어장관리.", comment: "철학 교수님이 뼈 때리시네.. 반박 불가 ㄷㄷ", mild: [{ t: "썸의 정의", c: "썸은 상대가 날 좋아하는지 모르는 '무지' 상태가 아니라, 내가 이 관계를 어떻게 할지 망설이는 '의지적 불확정성' 상태임." }, { t: "두 가지 썸", c: "진지하게 간을 보는 '탐색형 썸'과 그냥 설렘만 즐기는 '쾌락형 썸'이 있음." }, { t: "어장관리란?", c: "속마음은 즐기기만 하는 '쾌락형'이면서, 겉으로는 진지한 '탐색형'인 척 상대를 속이는 기만행위임." }] },
             { id: 2, title: "AI랑 연애 가능? (영화 'Her'가 소름 돋는 이유)", tags: "#AI #로봇 #감정 #영화Her #짝사랑", likes: 980, emoji: "🤖", originalTitle: "인공 지능에서 인공 감정으로: 감정을 가진 기계는 실현가능한가?", link: "https://scholar.google.co.kr/scholar?q=인공+지능에서+인공+감정으로", summary: "AI가 '사랑해요'라고 말하는 건 코딩된 연기일 뿐임.\\n근데 인간은 그걸 진짜로 착각해서 정서적으로 의존함.\\n결국 나만 진심인 슬픈 짝사랑이 될 것.", comment: "시리야, 너 나 좋아해? (대답 없는 너...)", mild: [{ t: "감정 로봇", c: "사람들은 외로움을 달래기 위해 감정을 표현하는 로봇을 원함." }, { t: "팩트 체크", c: "로봇은 생존 본능이 없어서 진짜 '공포'나 '기쁨'을 느낄 수 없음. 흉내만 낼 뿐." }, { t: "위험성", c: "우리는 로봇을 의인화해서 사랑을 주지만, 로봇은 줄 수 없음. 일방적인 감정 소통의 위험." }] },
@@ -753,12 +747,12 @@
             if (container.scrollTop > 300) btn.classList.add('show');
             else btn.classList.remove('show');
 
-            // 검색창 하이브리드 로직 (스크롤 내리면 고정)
+            // 스크롤 시 검색창 고정 모드 전환
             if (bar.style.display === 'block') {
                 if (container.scrollTop > 50) {
-                    bar.classList.add('floating');
+                    bar.classList.add('fixed-mode');
                 } else {
-                    bar.classList.remove('floating');
+                    bar.classList.remove('fixed-mode');
                 }
             }
         }
@@ -767,7 +761,7 @@
             document.getElementById('appContainer').scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // 🔍 스마트 검색창 로직 (수정됨: 화면 이동 없음, 그냥 열림)
+        // 🔍 스마트 검색창 로직
         function toggleSearch() {
             const bar = document.getElementById('searchBar');
             const container = document.getElementById('appContainer');
@@ -779,9 +773,9 @@
 
                 // 현재 스크롤 상태에 따라 바로 모드 적용
                 if (container.scrollTop > 50) {
-                    bar.classList.add('floating');
+                    bar.classList.add('fixed-mode');
                 } else {
-                    bar.classList.remove('floating');
+                    bar.classList.remove('fixed-mode');
                 }
 
                 // 포커스만 줌 (스크롤 이동 안함)
@@ -848,7 +842,6 @@
             const btn = document.getElementById('payBtn');
             btn.innerText = "결제 중...";
             setTimeout(() => {
-                // 문구 수정됨: 데모 버전 알림
                 alert("🎉 결제 성공!\\n(데모 버전이므로 실제 결제는 되지 않습니다.)");
                 document.getElementById('payModal').classList.remove('open');
                 showToast("원문 페이지로 이동합니다 🚀");
@@ -858,10 +851,13 @@
             }, 1500);
         }
 
+        // 공유 링크 주소는 네 실제 Vercel 주소로 변경해줘!
         function copySmartLink() {
-            // 실제 Vercel 주소가 있다면 여기를 수정하세요
+            // TODO: 여기 'https://paper-pop.vercel.app' 부분을 네 진짜 주소로 바꿔!
             const text = `[Paper Pop] 흥미로운 논문 발견! 💘\\n📄 제목: ${currentPaper.title}\\n⚡️ 요약: ${currentPaper.summary.replace(/\n/g, ' ')}\n🔗 https://paper-pop.vercel.app`;
-            navigator.clipboard.writeText(text).then(() => showToast("제목+요약+링크 복사 완료! ✅"));
+            navigator.clipboard.writeText(text)
+                .then(() => showToast("제목+요약+링크 복사 완료! ✅"))
+                .catch(() => showToast("제목+요약+링크 복사 완료! ✅"));
         }
 
         function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
