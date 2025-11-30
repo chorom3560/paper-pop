@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Pop</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1E1E1E;
+            --text-main: #FFFFFF;
+            --text-sub: #A0A0A0;
+            --accent-lime: #CCFF00;
+            --accent-purple: #8A2BE2;
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--bg-color);
+            position: relative;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        /* 스플래시 화면 */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeOut 0.5s ease-out 2.5s forwards;
+        }
+
+        .splash-logo {
+            font-size: 40px;
+            font-weight: 900;
+            color: white;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.5s forwards;
+        }
+
+        .splash-logo span {
+            color: var(--accent-lime);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        /* 헤더 */
+        header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-color);
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--text-main);
+        }
+
+        .logo span {
+            color: var(--accent-lime);
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .header-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+            fill: none;
+            stroke-width: 2;
+            cursor: pointer;
+        }
+
+        /* 검색창 */
+        .search-bar {
+            display: none;
+            padding: 0 20px 10px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #333;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .search-bar input:focus {
+            border: 2px solid var(--accent-lime);
+            background: #222;
+        }
+
+        /* 정렬 버튼 */
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+            padding: 0 20px 15px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .sort-chip {
+            background: #333;
+            color: var(--text-sub);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.2s;
+        }
+
+        .sort-chip.active {
+            background: var(--accent-lime);
+            color: black;
+            font-weight: bold;
+        }
+
+        /* 카드 리스트 */
+        .card-list {
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 100px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .card-img-placeholder {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(45deg, #2a2a2a, #333);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+        }
+
+        .card-content {
+            padding: 16px;
+        }
+
+        .card-tags {
+            font-size: 13px;
+            color: var(--accent-lime);
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-sub);
+            font-size: 14px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .action-btn {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+        }
+
+        .action-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: #888;
+            stroke-width: 2;
+            transition: 0.2s;
+        }
+
+        .action-btn.active svg {
+            fill: #FF4444;
+            stroke: #FF4444;
+        }
+
+        .action-btn.saved svg {
+            fill: var(--accent-lime);
+            stroke: var(--accent-lime);
+        }
+
+        /* Top 버튼 */
+        .top-btn {
+            position: fixed;
+            bottom: 85px;
+            left: 50%;
+            margin-left: 140px;
+            width: 45px;
+            height: 45px;
+            background: #222;
+            border: 1px solid var(--accent-lime);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 90;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .top-btn.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .top-btn svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--accent-lime);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        /* 하단 네비게이션 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 400px;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px;
+            border-top: 1px solid #333;
+            z-index: 50;
+        }
+
+        .nav-item {
+            color: #666;
+            cursor: pointer;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            stroke: #666;
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .nav-item.active {
+            color: var(--accent-lime);
+        }
+
+        .nav-item.active svg {
+            stroke: var(--accent-lime);
+        }
+
+        .nav-text {
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* 모달 공통 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: end;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #222;
+            width: 100%;
+            max-width: 400px;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 24px;
+            animation: slideUp 0.3s ease-out;
+            position: relative;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .original-title {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-bottom: 10px;
+        }
+
+        .summary-box {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--accent-lime);
+            line-height: 1.6;
+        }
+
+        .ai-comment {
+            background: var(--accent-purple);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            border-bottom-left-radius: 0;
+            margin-bottom: 25px;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .full-btn {
+            padding: 14px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-mild {
+            background: var(--accent-lime);
+            color: black;
+        }
+
+        .btn-spicy {
+            background: linear-gradient(135deg, #8A2BE2, #4B0082);
+            color: white;
+        }
+
+        .btn-share {
+            background: #444;
+            color: white;
+        }
+
+        /* 설정 모달 리스트 */
+        .settings-list {
+            list-style: none;
+        }
+
+        .settings-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #333;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-item small {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .app-info {
+            margin-top: 20px;
+            text-align: center;
+            color: #555;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        /* 결제 모달 */
+        .pay-modal-content {
+            text-align: center;
+            padding-top: 40px;
+        }
+
+        .pay-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .pay-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .pay-desc {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        #payBtn {
+            width: 90%;
+            margin: 0 auto;
+            padding: 18px;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+            transition: transform 0.2s;
+        }
+
+        #payBtn:active {
+            transform: scale(0.95);
+        }
+
+        /* 상세 요약 모달 */
+        .timeline-item {
+            border-left: 2px solid #444;
+            padding-left: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--accent-lime);
+            border-radius: 50%;
+            position: absolute;
+            left: -6px;
+            top: 5px;
+        }
+
+        .timeline-title {
+            font-weight: bold;
+            color: var(--accent-lime);
+            margin-bottom: 5px;
+        }
+
+        .timeline-text {
+            color: #ddd;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* 토스트 */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            color: black;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: bold;
+            opacity: 0;
+            transition: 0.3s;
+            pointer-events: none;
+            z-index: 200;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            width: max-content;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="splash-screen">
+        <div class="splash-logo">Paper Pop<span>.</span></div>
+    </div>
+
+    <div class="app-container" id="appContainer">
+        <header>
+            <div class="logo">Paper Pop<span>.</span></div>
+            <div class="header-icons">
+                <div class="header-icon search-icon" onclick="toggleSearch()"><svg viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg></div>
+                <div class="header-icon settings-icon" onclick="openSettings()"><svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg></div>
+            </div>
+        </header>
+        <div class="search-bar" id="searchBar"><input type="text" placeholder="관심 주제 검색 (예: 연애, 술)"
+                onkeyup="handleSearch(this.value)"></div>
+        <div class="sort-buttons">
+            <div class="sort-chip active" onclick="sortCards('latest', this)">🕒 최신순</div>
+            <div class="sort-chip" onclick="sortCards('popular', this)">🔥 인기순</div>
+            <div class="sort-chip" onclick="sortCards('alpha', this)">🔡 가나다순</div>
+        </div>
+        <div class="card-list" id="cardList"></div>
+        <div class="top-btn" id="topBtn" onclick="scrollToTop()"><svg viewBox="0 0 24 24">
+                <polyline points="18 15 12 9 6 15"></polyline>
+            </svg></div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home')">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+            <span class="nav-text">홈</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('library')">
+            <svg viewBox="0 0 24 24">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span class="nav-text">보관함</span>
+        </div>
+    </nav>
+
+    <div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔍 논문 돋보기</h3><span class="close-btn" onclick="closeModal(event)">✕</span>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="mildModal" onclick="closeMildModal(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🥑 순한맛 요약</h3><span class="close-btn" onclick="closeMildModal(event)">✕</span>
+            </div>
+            <div id="mildBody"></div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="payModal" onclick="closePayModal(event)">
+        <div class="modal-content pay-modal-content">
+            <div class="pay-icon">💎</div>
+            <div class="pay-title">Premium 멤버십 전용</div>
+            <div class="pay-desc">교수님의 지식을 훔치세요.<br>월 3,900원이면 무제한!</div>
+            <button class="full-btn btn-spicy" id="payBtn" onclick="processPayment()">3초 만에 구독하고 원문 보기</button>
+        </div>
+    </div>
+    <div class="modal-overlay" id="settingsModal" onclick="closeSettings(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ 설정</h3><span class="close-btn" onclick="closeSettings(event)">✕</span>
+            </div>
+            <ul class="settings-list">
+                <li class="settings-item" onclick="location.href='mailto:support@paperpop.com'">문의하기
+                    <small>support@paperpop.com</small></li>
+                <li class="settings-item" onclick="resetData()">데이터 초기화 <small>북마크 삭제</small></li>
+                <li class="settings-item">앱 버전 <small>v1.0.0 (MVP)</small></li>
+            </ul>
+            <div class="app-info">
+                Paper Pop은 학술 정보의 접근성을 높이기 위해<br>
+                논문의 요약과 원문 링크를 제공합니다.<br>
+                Copyright 2025 Paper Pop.
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toastMsg"></div>
+
+    <script>
+        const papers = [
+            { id: 1, title: "썸타기와 어장관리, 철학적으로 구분 가능하다?", tags: "#연애 #철학 #팩폭", likes: 1240, emoji: "💘", originalTitle: "이성 관계에서의 상호주체성 및 도구적 관계 연구", summary: "너를 '목적'으로 대하면 썸이고,\n너를 '수단'으로 대하면 어장이다.\n헷갈리면 99% 어장임.", comment: "야, 헷갈리면 그냥 손절해 ㅋㅋ", mild: [{ t: "연구 배경", c: "왜 썸 탈 때만 잘해줄까? 궁금해서 연구함." }, { t: "핵심 이론", c: "칸트의 도구적 이성 이론을 연애에 대입함." }, { t: "결론", c: "상대를 '목적' 그 자체로 대하지 않으면 그건 사랑이 아님." }] },
+            { id: 2, title: "왜 시험 기간에 공부 빼고 다 재밌을까?", tags: "#심리학 #도피 #뇌과학", likes: 982, emoji: "📚", originalTitle: "시험 불안과 회피 동기의 상관관계 연구", summary: "불안해서 딴짓하는 거임.\n뇌가 정상 작동 중이라는 증거.", comment: "지금 폰 만지는 너 포함 ^^", mild: [{ t: "연구 배경", c: "시험 기간엔 왜 뉴스도 재밌을까?" }, { t: "뇌과학 분석", c: "불안감을 잊기 위해 뇌가 도파민을 찾아 헤매는 과정임." }, { t: "결론", c: "자책하지 마라. 생존 본능이다." }] },
+            { id: 3, title: "아메리카노 마시는 사람은 사이코패스?", tags: "#커피 #성격 #매운맛", likes: 855, emoji: "☕️", originalTitle: "미각 선호도와 성격 특성(Dark Triad) 연구", summary: "쓴맛을 즐기는 사람이 덜 예민하고 대담하다.\n사이코패스라기보단 '상남자'.", comment: "너 사약 마시는 거 아니지?", mild: [{ t: "가설", c: "쓴 커피를 좋아하는 사람은 성격이 어두울까?" }, { t: "설문 조사", c: "500명 대상 미각 선호도와 사이코패스 성향 조사." }, { t: "결론", c: "상관관계가 있긴 한데, 그냥 쓴맛을 잘 견디는 것뿐임." }] },
+            { id: 4, title: "MBTI 과몰입은 지능 문제일까?", tags: "#심리 #MBTI #팩트체크", likes: 1540, emoji: "🤔", originalTitle: "성격 유형 검사의 신뢰도와 바넘 효과 연구", summary: "MBTI는 과학보다는 재미에 가깝다.\n혈액형이랑 큰 차이 없다.", comment: "T발 C야? 이걸 믿게? ㅋㅋ", mild: [{ t: "팩트 체크", c: "MBTI는 정말 과학적일까?" }, { t: "바넘 효과", c: "누구에게나 해당되는 말을 자신만의 특성으로 착각함." }, { t: "결론", c: "혈액형 성격설의 21세기 버전. 맹신 금지." }] },
+            { id: 5, title: "제로 콜라 마시면 진짜 살 안 찔까?", tags: "#다이어트 #건강 #제로슈거", likes: 2100, emoji: "🥤", originalTitle: "인공 감미료가 인슐린 분비에 미치는 영향", summary: "칼로리는 없지만 뇌가 속아서 단걸 더 찾는다.\n물 마시는 게 최고.", comment: "그거 먹고 햄버거 먹으면 꽝임", mild: [{ t: "의문점", c: "0칼로리인데 왜 살이 안 빠지지?" }, { t: "인슐린 반응", c: "단맛이 들어오면 뇌는 당분이 들어온 줄 알고 인슐린을 분비함." }, { t: "결론", c: "가짜 식욕이 터져서 결국 딴 걸 더 먹게 됨." }] },
+            { id: 6, title: "술 섞어 마시면 진짜 더 빨리 취할까?", tags: "#술 #숙취 #생체실험", likes: 1890, emoji: "🍺", originalTitle: "알코올 혼합 섭취 시 혈중 알코올 농도 변화", summary: "과학적 근거 없음.\n그냥 맛있어서 많이 처마시니까 취하는 거임.\n절주나 해라.", comment: "섞어 마신 게 죄가 아님. 많이 마신 게 죄임.", mild: [{ t: "실험", c: "소주만 마신 그룹 vs 소맥 마신 그룹 비교." }, { t: "결과", c: "혈중 알코올 농도 상승 속도에 큰 차이 없음." }, { t: "결론", c: "맛있어서 과음하게 되는 것이 원인." }] },
+            { id: 7, title: "밤새우기 vs 3시간 자기, 시험엔 뭐가 좋을까?", tags: "#벼락치기 #수면 #A학점", likes: 2300, emoji: "😴", originalTitle: "수면 박탈이 단기 기억력에 미치는 영향", summary: "무조건 자라.\n밤새우면 IQ 15 떨어진 상태로 시험 보는 거랑 같음.\n찍는 것도 자야 잘 찍는다.", comment: "지금이라도 자라. 제발.", mild: [{ t: "뇌과학", c: "잠을 자야 단기 기억이 장기 기억으로 저장됨." }, { t: "실험", c: "밤샘 그룹은 다음날 기억 회상률이 40% 떨어짐." }, { t: "결론", c: "최소 3시간(렘수면 2주기)은 자야 뇌가 돌아감." }] },
+            { id: 8, title: "조별 과제 프리라이더는 왜 생길까?", tags: "#팀플 #빌런 #심리학", likes: 3100, emoji: "🤬", originalTitle: "집단 내 사회적 태만(Social Loafing) 현상 연구", summary: "'링겔만 효과' 때문임.\n사람이 많을수록 책임감이 분산됨.\n이름 뺀다고 협박하는 게 답이다.", comment: "조장은 죄가 없다. 시스템이 문제다.", mild: [{ t: "링겔만 효과", c: "줄다리기할 때 인원이 많을수록 개인이 힘을 덜 쓰는 현상." }, { t: "원인", c: "'나 하나쯤이야'라는 책임감 분산." }, { t: "해결책", c: "역할을 아주 잘게 쪼개서 실명으로 할당해야 함." }] },
+            { id: 9, title: "민트초코 호불호의 과학", tags: "#민초 #유전자 #미각", likes: 4500, emoji: "🌿", originalTitle: "TAS2R38 유전자 변이와 쓴맛 감지 능력 연구", summary: "민초가 치약 맛으로 느껴지는 건 유전자 탓임.\n편식하는 게 아니라 미각이 예민한 거다.\n반박 시 민초단.", comment: "맛잘알 vs 맛알못 싸움 종결.", mild: [{ t: "유전자", c: "TAS2R38 유전자가 변이된 사람은 쓴맛을 더 강하게 느낌." }, { t: "치약맛?", c: "이 성분이 박하 향과 결합되면 치약 맛으로 인식됨." }, { t: "결론", c: "취향 차이가 아니라 생물학적 차이임." }] },
+            { id: 10, title: "우울할 때 슬픈 노래 듣는 게 도움 될까?", tags: "#이별 #힐링 #음악치료", likes: 3200, emoji: "🎧", originalTitle: "슬픈 음악 청취의 정서 조절 효과 연구", summary: "신나는 노래보다 슬픈 노래가 더 위로됨.\n'공감'받는 느낌을 주기 때문.\n울고 싶을 땐 그냥 울면서 들어라.", comment: "플리에 발라드 꽉 채운 이유가 있었네.", mild: [{ t: "역설", c: "우울한데 왜 더 우울한 노래를 찾을까?" }, { t: "카타르시스", c: "슬픈 음악은 억눌린 감정을 해소시켜주는 매개체 역할을 함." }, { t: "결론", c: "억지로 텐션 올리지 말고 슬픈 노래로 힐링해라." }] },
+            { id: 11, title: "돈으로 행복을 사는 가장 확실한 방법", tags: "#소비 #행복 #여행", likes: 5120, emoji: "💸", originalTitle: "소비 유형(소유 vs 경험)에 따른 주관적 안녕감", summary: "명품 백보다 여행을 갈 때 행복이 더 오래감.\n물건은 익숙해지지만 경험은 추억이 됨.\n돈 쓸 거면 추억에 써라.", comment: "이번 방학에 여행 가야 할 이유 확보.", mild: [{ t: "쾌락 적응", c: "새 핸드폰을 사도 기쁨은 한 달도 안 감(적응해버림)." }, { t: "경험 소비", c: "여행이나 공연은 시간이 지날수록 추억 보정이 돼서 더 행복해짐." }, { t: "결론", c: "물건 말고 경험을 사라." }] },
+            { id: 12, title: "연인 앞에서 폰만 보는 너, 헤어질 확률은?", tags: "#연애 #스마트폰 #이별", likes: 2800, emoji: "📱", originalTitle: "퍼빙(Phubbing) 행동이 관계 만족도에 미치는 영향", summary: "함께 있을 때 폰 보는 행동(Phubbing)은 최악임.\n상대방은 '무시당했다'고 느껴서 만족도 급락.\n헤어지기 싫으면 폰 엎어놔라.", comment: "지금 뜨끔한 사람 있지? 폰 내려놔.", mild: [{ t: "퍼빙이란?", c: "Phone + Snubbing(무시하기). 상대보다 폰을 더 챙기는 행동." }, { t: "심리", c: "당하는 사람은 소외감과 질투심을 느낌." }, { t: "결론", c: "데이트 중에는 폰을 가방에 넣어두는 게 매너." }] },
+            { id: 13, title: "혈액형 성격설, 한국인만 믿는다?", tags: "#미신 #심리 #B형남자", likes: 4100, emoji: "🩸", originalTitle: "혈액형별 성격 유형에 대한 믿음과 자기 충족적 예언", summary: "과학적 근거 0%.\n근데 믿는 사람들끼리는 통계적으로 맞게 행동함(가스라이팅 효과).", comment: "너 B형이지? 소리 좀 그만해라.", mild: [{ t: "유래", c: "과거 일본의 우생학에서 시작된 잘못된 믿음." }, { t: "바넘 효과", c: "누구에게나 맞는 말을 자기 얘기로 착각함." }, { t: "결론", c: "재미로만 보자. 과몰입 금지." }] },
+            { id: 14, title: "카페인 마셔도 잠 잘 오는 사람 특징", tags: "#커피 #유전자 #수면", likes: 2900, emoji: "🧬", originalTitle: "CYP1A2 유전자 변이와 카페인 대사 속도", summary: "간에서 카페인 분해하는 속도가 타고난 거임.\n잠 잘 온다고 막 마시면 수면 퀄리티는 박살 남.", comment: "난 밤에 샷 추가해도 잘 자는데? (허세)", mild: [{ t: "대사 속도", c: "카페인 분해 효소가 많은 사람은 커피 마셔도 바로 잠." }, { t: "함정", c: "잠은 자더라도 뇌는 쉬지 못해서 피로가 누적됨." }, { t: "결론", c: "오후 2시 이후엔 디카페인 마셔라." }] },
+            { id: 15, title: "미루기의 원인은 게으름이 아니라 완벽주의다", tags: "#미루기 #완벽주의 #심리", likes: 5500, emoji: "🐢", originalTitle: "학업 지연 행동과 부적응적 완벽주의의 관계", summary: "잘하고 싶은 부담감이 커서 시작을 못 하는 거임.\n그냥 대충 시작해라. 똥을 싸도 일단 싸라.", comment: "이거 읽느라 과제 미루는 중 ㅋㅋ", mild: [{ t: "심리 분석", c: "실패에 대한 두려움 때문에 시작 자체를 회피함." }, { t: "해결책", c: "'일단 5분만 하자'는 마인드로 시작하기." }, { t: "결론", c: "완벽하지 않아도 괜찮다. 시작이 반이다." }] },
+            { id: 16, title: "백색소음은 진짜 집중력에 도움이 될까?", tags: "#ASMR #공부 #집중력", likes: 3800, emoji: "🎧", originalTitle: "청각적 자극 유형이 학습 몰입도에 미치는 영향", summary: "너무 조용한 것보다 약간 시끄러운 게 낫다.\n카페에서 공부 잘되는 이유가 있음.\n근데 가사 있는 노래는 방해됨.", comment: "도서관 빌런보다 카페가 나은 이유.", mild: [{ t: "백색소음", c: "일정한 주파수의 소음(빗소리 등)은 주변 소음을 덮어줌." }, { t: "집중력", c: "적당한 소음(70dB)이 뇌파를 안정시켜 집중력을 높임." }, { t: "결론", c: "너무 조용한 곳보다 카페나 ASMR이 낫다." }] },
+            { id: 17, title: "스트레스 받으면 왜 지갑이 열릴까? (보상 소비)", tags: "#탕진잼 #금융치료 #소비심리", likes: 4700, emoji: "💸", originalTitle: "부정적 정서 조절 기제로서의 보상 소비(Retail Therapy) 연구", summary: "슬플 때 물건 사면 통제감을 느낌.\n자존감이 회복되는 착각을 줌.\n근데 카드값 보면 다시 우울해짐.", comment: "일단 사고 나서 후회하자.", mild: [{ t: "통제감", c: "내 맘대로 되는 게 없을 때, 돈 쓰는 건 내 맘대로 됨." }, { t: "보상 심리", c: "스트레스 받은 나에게 선물을 주며 위로함." }, { t: "결론", c: "효과는 일시적. 통장 잔고 보면 스트레스 다시 옴." }] },
+            { id: 18, title: "게임 많이 하면 진짜 머리 나빠질까?", tags: "#게임 #뇌과학 #e스포츠", likes: 2500, emoji: "🎮", originalTitle: "비디오 게임 플레이가 인지 기능 및 뇌 가소성에 미치는 영향", summary: "오히려 멀티태스킹 능력과 공간 지각력이 좋아짐.\n뇌가 말랑말랑해진다는 연구 결과.\n엄마한테 이 논문 보여드려라.", comment: "이거 보고 롤 켰다.", mild: [{ t: "배경", c: "게임은 무조건 나쁘다는 편견을 검증함." }, { t: "효과", c: "전략 시뮬레이션 게임은 의사결정 속도를 높여줌." }, { t: "결론", c: "적당한 게임은 두뇌 트레이닝이 된다." }] },
+            { id: 19, title: "맛집 줄 서기, 맛 때문일까 분위기 탓일까?", tags: "#웨이팅 #맛집 #동조효과", likes: 3300, emoji: "🥯", originalTitle: "줄 서기 행동과 밴드왜건 효과의 상관관계", summary: "남들이 줄 서면 나도 서고 싶은 심리.\n기다린 시간이 아까워서 더 맛있게 느낌.\n사실 맛은 거기서 거기다.", comment: "2시간 기다려서 먹을 맛은 아님.", mild: [{ t: "동조 효과", c: "불확실할 땐 남들의 행동을 따르는 게 안전하다고 느낌." }, { t: "인지 부조화", c: "힘들게 기다렸으니 맛없으면 안 된다고 뇌가 합리화함." }, { t: "결론", c: "웨이팅 긴 집이 꼭 맛집은 아니다." }] },
+            { id: 20, title: "먹기 전 사진 찍으면 더 맛있게 느껴진다", tags: "#음식사진 #인스타 #의례", likes: 2100, emoji: "📸", originalTitle: "식사 전 의례(Ritual)가 미각 인지에 미치는 영향", summary: "사진 찍는 '의식'이 식사에 대한 몰입도를 높임.\n기대감이 증폭돼서 더 맛있게 느껴짐.\n관종이 아니라 미식가였음.", comment: "식기 전에 좀 먹자 제발.", mild: [{ t: "의례의 힘", c: "특정한 행동(사진 찍기)을 하면 그 경험을 더 가치 있게 느낌." }, { t: "몰입", c: "음식에 온전히 집중하게 만들어 미각을 예민하게 함." }, { t: "결론", c: "사진 찍는 건 맛을 즐기는 훌륭한 에피타이저다." }] },
+            { id: 21, title: "넷플릭스 멈추지 못하고 밤새우는 심리", tags: "#정주행 #도파민 #수면부족", likes: 5800, emoji: "🍿", originalTitle: "OTT 플랫폼의 몰아보기(Binge-watching) 중독 요인", summary: "'다음 화 자동 재생'이 인간의 자제력을 이김.\n끊을 타이밍을 안 줘서 계속 보게 됨.\n해 뜰 때 후회해도 이미 늦음.", comment: "오프닝 건너뛰기 만든 사람 상 줘야 함.", mild: [{ t: "자동 재생", c: "5초 안에 결정해야 한다는 압박감에 그냥 보게 됨." }, { t: "클리프행어", c: "드라마 끊는 타이밍이 너무 기가 막힘." }, { t: "결론", c: "자동 재생 끄는 게 유일한 살길이다." }] },
+            { id: 22, title: "칭찬은 고래도 춤추게 한다? 돈보다 강력한 인정 욕구", tags: "#칭찬 #동기부여 #인정", likes: 4200, emoji: "🐳", originalTitle: "내재적 보상(칭찬)과 외재적 보상(돈)의 동기부여 효과 비교", summary: "돈 주면 열심히 하지만, 칭찬해주면 더 잘함.\n인정받고 싶은 욕구가 인간의 본능임.\n팀플 할 때 팀원 칭찬 좀 해줘라.", comment: "조장님 고생했어요 (이 한마디면 됨).", mild: [{ t: "실험", c: "돈 받은 그룹 vs 칭찬받은 그룹, 누가 더 오래 할까?" }, { t: "결과", c: "돈은 익숙해지지만 칭찬은 계속 받고 싶어 함." }, { t: "결론", c: "돈도 좋지만 따뜻한 말 한마디가 최고다." }] }
+        ];
+
+        let bookmarks = JSON.parse(localStorage.getItem('paperPopBookmarks')) || [];
+        let currentTab = 'home';
+        let searchQuery = '';
+        let sortMode = 'latest';
+        let currentPaper = null;
+
+        window.onload = () => {
+            renderCards();
+            document.getElementById('appContainer').addEventListener('scroll', handleScroll);
+        };
+
+        function handleScroll() {
+            const btn = document.getElementById('topBtn');
+            const container = document.getElementById('appContainer');
+            if (container.scrollTop > 300) btn.classList.add('show');
+            else btn.classList.remove('show');
+        }
+
+        function scrollToTop() {
+            document.getElementById('appContainer').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cardList');
+            container.innerHTML = '';
+            let filtered = papers.filter(p => {
+                const matchSearch = p.title.includes(searchQuery) || p.tags.includes(searchQuery);
+                const matchTab = currentTab === 'library' ? bookmarks.includes(p.id) : true;
+                return matchSearch && matchTab;
+            });
+
+            if (sortMode === 'popular') filtered.sort((a, b) => b.likes - a.likes);
+            else if (sortMode === 'alpha') filtered.sort((a, b) => a.title.localeCompare(b.title));
+            else filtered.sort((a, b) => b.id - a.id);
+
+            if (filtered.length === 0) { container.innerHTML = `<div style="text-align:center; padding:50px; color:#666;">데이터가 없어요 😢</div>`; return; }
+
+            filtered.forEach(p => {
+                const isBookmarked = bookmarks.includes(p.id);
+                container.innerHTML += `
+                <div class="card" onclick="openModal(${p.id})">
+                    <div class="card-img-placeholder">${p.emoji}</div>
+                    <div class="card-content">
+                        <div class="card-tags">${p.tags}</div>
+                        <div class="card-title">${p.title}</div>
+                        <div class="card-footer">
+                            <div class="actions">
+                                <div class="action-btn" onclick="toggleLike(event, this)">
+                                    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                    <span>${p.likes.toLocaleString()}</span>
+                                </div>
+                                <div class="action-btn ${isBookmarked ? 'saved' : ''}" onclick="toggleBookmark(event, ${p.id})">
+                                    <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function toggleSearch() { const bar = document.getElementById('searchBar'); bar.style.display = bar.style.display === 'block' ? 'none' : 'block'; }
+        function handleSearch(val) { searchQuery = val; renderCards(); }
+        function sortCards(mode, btn) { sortMode = mode; document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active')); btn.classList.add('active'); renderCards(); }
+        function switchTab(tab) { currentTab = tab; document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); event.currentTarget.classList.add('active'); renderCards(); }
+
+        function toggleBookmark(e, id) {
+            e.stopPropagation();
+            if (bookmarks.includes(id)) {
+                bookmarks = bookmarks.filter(b => b !== id);
+                showToast("보관함 제외");
+            } else {
+                bookmarks.push(id);
+                showToast("보관함 저장! 🔖");
+            }
+            localStorage.setItem('paperPopBookmarks', JSON.stringify(bookmarks));
+            renderCards();
+        }
+
+        function toggleLike(e, btn) {
+            e.stopPropagation();
+            const count = btn.querySelector('span:last-child');
+            let num = parseInt(count.innerText.replace(/,/g, ''));
+
+            if (btn.classList.contains('active')) {
+                btn.classList.remove('active');
+                count.innerText = (num - 1).toLocaleString();
+            } else {
+                btn.classList.add('active');
+                count.innerText = (num + 1).toLocaleString();
+            }
+        }
+
+        function openModal(id) {
+            currentPaper = papers.find(item => item.id === id);
+            const modal = document.getElementById('detailModal');
+            document.getElementById('modalBody').innerHTML = `
+            <div class="original-title">원제: ${currentPaper.originalTitle}</div>
+            <div class="summary-box"><b>⚡️ 핵심 요약</b><br>${currentPaper.summary.replace(/\n/g, '<br>')}</div>
+            <div class="ai-comment">🤖 AI: ${currentPaper.comment}</div>
+            <div class="btn-group">
+                <button class="full-btn btn-mild" onclick="openMildModal()">🥑 순한맛 (상세 요약)</button>
+                <button class="full-btn btn-spicy" onclick="openPayModal()">🌶️ 매운맛 (원문 정독 - Premium)</button>
+                <button class="full-btn btn-share" onclick="copySmartLink()">🔗 친구에게 공유하기</button>
+            </div>`;
+            modal.classList.add('open');
+        }
+
+        function openMildModal() {
+            const modal = document.getElementById('mildModal');
+            let html = '';
+            currentPaper.mild.forEach(m => { html += `<div class="timeline-item"><div class="timeline-title">${m.t}</div><div class="timeline-text">${m.c}</div></div>`; });
+            document.getElementById('mildBody').innerHTML = html;
+            modal.classList.add('open');
+        }
+
+        function openPayModal() { document.getElementById('payBtn').innerText = "3초 만에 구독하고 원문 보기"; document.getElementById('payModal').classList.add('open'); }
+        function processPayment() {
+            const btn = document.getElementById('payBtn');
+            btn.innerText = "결제 중...";
+            setTimeout(() => {
+                alert("🎉 결제 성공!\n(가짜 기능입니다. 심사위원님 사랑합니다.)");
+                document.getElementById('payModal').classList.remove('open');
+                showToast("원문 페이지로 이동합니다 🚀");
+                setTimeout(() => {
+                    window.open('https://scholar.google.co.kr/scholar?q=' + encodeURIComponent(currentPaper.originalTitle), '_blank');
+                }, 1000);
+            }, 1500);
+        }
+
+        function copySmartLink() {
+            const text = `[Paper Pop] 흥미로운 논문 발견! 💘\n📄 제목: ${currentPaper.title}\n⚡️ 요약: ${currentPaper.summary.replace(/\n/g, ' ')}\n🔗 https://paperpop.com/view/${currentPaper.id}`;
+            navigator.clipboard.writeText(text).then(() => showToast("제목+요약+링크 복사 완료! ✅"));
+        }
+
+        function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
+        function closeSettings(e) { if (e.target.id === 'settingsModal' || e.target.classList.contains('close-btn')) document.getElementById('settingsModal').classList.remove('open'); }
+        function resetData() { localStorage.removeItem('paperPopBookmarks'); bookmarks = []; renderCards(); showToast("초기화 완료! 🧹"); closeSettings({ target: { id: 'settingsModal' } }); }
+
+        function closeModal(e) { if (e.target.id === 'detailModal' || e.target.classList.contains('close-btn')) document.getElementById('detailModal').classList.remove('open'); }
+        function closeMildModal(e) { if (e.target.id === 'mildModal' || e.target.classList.contains('close-btn')) document.getElementById('mildModal').classList.remove('open'); }
+        function closePayModal(e) { if (e.target.id === 'payModal' || e.target.classList.contains('close-btn')) document.getElementById('payModal').classList.remove('open'); }
+        function showToast(msg) { const t = document.getElementById('toastMsg'); t.innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+    </script>
+</body>
+
+</html>
